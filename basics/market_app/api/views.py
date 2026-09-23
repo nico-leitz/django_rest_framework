@@ -30,3 +30,29 @@ def first_view(request):
         else:
             return Response(serializer.errors)
         
+
+@api_view(['GET', 'DELETE', 'PUT'])
+def markets_single_view(request, pk):
+    
+    if request.method == 'GET':
+        market = Market.objects.get(pk=pk) 
+        serializer = MarketSerializer(market, many=False) 
+        return Response(serializer.data)
+
+    if request.method == 'PUT':
+            market = Market.objects.get(pk=pk)
+            # 'partial'sagt aus?? ( Das man z.B. nur ein Feld bearbeiten kann?)
+            serializer = MarketSerializer(market, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            else:
+                return Response(serializer.errors)
+
+    if request.method == 'DELETE':
+            market = Market.objects.get(pk=pk) 
+            serializer = MarketSerializer(market, many=False)
+            market.delete()
+            return Response(serializer.data)
+
+    
