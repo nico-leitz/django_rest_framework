@@ -23,10 +23,10 @@ def first_view(request):
     
     
     if request.method == 'POST':
-        try:
-            msg = request.data['message']
-            return Response({'your_message': msg}, status=status.HTTP_201_CREATED)
-        
-        except:
-            return Response({'message': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = MarketSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors)
         
