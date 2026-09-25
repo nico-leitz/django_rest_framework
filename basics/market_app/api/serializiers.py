@@ -3,10 +3,13 @@ from market_app.models import Market, Seller, Product
              
 
 class MarketSerializer(serializers.ModelSerializer):
+
+    # ist view_name einfach ein HyperLink? Was passiert da genau?
+    sellers = serializers.HyperlinkedRelatedField(many=True, read_only=True, view_name='seller_single')
     
     class Meta:
         model = Market
-        fields = ['id', 'name', 'location', 'description', 'net_worth'] # '__all__' nimmt alle Felder
+        fields = ['id', 'sellers', 'name', 'location', 'description', 'net_worth'] # '__all__' nimmt alle Felder
     #   exclude = ['net_worth'] # man kann ich daten ausschließen
 
     def validate_name(self, value): 
@@ -52,3 +55,8 @@ class ProductSerializer(serializers.Serializer):
 
     def create(self, validated_data):
          return Product.objects.create(**validated_data)
+
+
+
+## WICHTIG: Wenn wir kein Model haben können wir auch keinen ModelSerializer nutzen
+## Normale Serializer nutzt z.B. wenn (Datenabweichen?) ??? Nenne Beispiele
