@@ -6,6 +6,17 @@ class MarketSerializer(serializers.HyperlinkedModelSerializer):
 
     # ist view_name einfach ein HyperLink? Was passiert da genau?
     sellers = serializers.HyperlinkedRelatedField(many=True, read_only=True, view_name='seller_single')
+
+    def __init__(self, *args, **kwargs):
+        fields = kwargs.pop('fields', None)
+
+        super().__init__(*args, **kwargs)
+
+        if fields is not None:
+            allowed = set(fields)
+            existing = set(self.fields)
+            for field_name in  existing - allowed:
+                self.fields.pop(field_name)
     
     class Meta:
         model = Market
@@ -83,3 +94,5 @@ class ProductSerializer(serializers.Serializer):
 
 ## WICHTIG: Wenn wir kein Model haben können wir auch keinen ModelSerializer nutzen
 ## Normale Serializer nutzt z.B. wenn (Datenabweichen?) ??? Nenne Beispiele
+
+## Was ist ein 'Base' und 'List' Serializer??
