@@ -2,14 +2,37 @@ from rest_framework import serializers
 from market_app.models import Market, Seller, Product
              
 
-class MarketSerializer(serializers.ModelSerializer):
+class MarketSerializer(serializers.HyperlinkedModelSerializer):
 
     # ist view_name einfach ein HyperLink? Was passiert da genau?
     sellers = serializers.HyperlinkedRelatedField(many=True, read_only=True, view_name='seller_single')
     
     class Meta:
         model = Market
-        fields = ['id', 'sellers', 'name', 'location', 'description', 'net_worth'] # '__all__' nimmt alle Felder
+        fields = ['url', 'id', 'sellers', 'name', 'location', 'description', 'net_worth'] # '__all__' nimmt alle Felder
+    #   exclude = ['net_worth'] # man kann ich daten ausschließen
+
+    def validate_name(self, value): 
+        errors = []
+        
+        if 'X' in value:
+            errors.append('no X in location')
+        if 'Y' in value:
+            errors.append('no Y in location')
+
+        if errors:
+            raise serializers.ValidationError(errors)
+        return value
+
+# Vererbung / Wann nutzen??
+class MarketHyperlinkedSerializer(MarketSerializer, serializers.HyperlinkedModelSerializer):
+
+    # ist view_name einfach ein HyperLink? Was passiert da genau?
+    sellers = serializers.HyperlinkedRelatedField(many=True, read_only=True, view_name='seller_single')
+    
+    class Meta:
+        model = Market
+        fields = ['url', 'id', 'sellers', 'name', 'location', 'description', 'net_worth'] # '__all__' nimmt alle Felder
     #   exclude = ['net_worth'] # man kann ich daten ausschließen
 
     def validate_name(self, value): 
