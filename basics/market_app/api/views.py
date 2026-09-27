@@ -1,106 +1,75 @@
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework import status
-from .serializiers import MarketSerializer, SellerSerializer, MarketHyperlinkedSerializer
-from market_app.models import Market, Seller
-from rest_framework.views import APIView
-from rest_framework import mixins, generics
+from rest_framework import viewsets, generics
+from django.shortcuts import get_object_or_404
+from market_app.models import Market, Seller, Product
+from .serializiers import MarketSerializer, SellerSerializer, ProductSerializer
 
-# Bekommen wir hier eine HTML-View?? Was nutzt man das, bzw wo ist der unterschied zu den anderen??
-# Ist das hier die ListView für POST und GET??
-class MarketsView(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView):
+# --- 1. INDUSTRIE-STANDARD: MODEL VIEW SETS (ALLES IN EINER KLASSE) ---
 
+# Das hier ersetzt MarketsView, MarketSingleView und alle deine @api_view Funktionen!
+class MarketViewSet(viewsets.ModelViewSet):
     queryset = Market.objects.all()
     serializer_class = MarketSerializer
 
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
+# Ersetzt seller_view und single_seller_view. Alle 5 CRUD Aktionen sind automatisch drin.
+class SellerViewSet(viewsets.ModelViewSet):
+    queryset = Seller.objects.all()
+    serializer_class = SellerSerializer
 
-    def post(self, request, *args, **kwargs):
-            return self.create(request, *args, **kwargs)
-
-
-class MarketsSingleView(mixins.RetrieveModelMixin, mixins.UpdateModelMixin, mixins.DestroyModelMixin ,generics.GenericAPIView):
-
-    # Wird für das GenericAPIView benötigt? (Die zwei Zeilen)
-    queryset = Market.objects.all()
-    serializer_class = MarketSerializer
-
-    def get(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs) # retrieve, weil ein einzelne Instanz/Objekt??
-
-    def put(self, request, *args, **kwargs):
-            return self.update(request, *args, **kwargs)
-
-    def delete(self, request, *args, **kwargs):
-                return self.destroy(request, *args, **kwargs)
-
-# @api_view(['GET', 'DELETE', 'PUT'])
-# def markets_single_view(request, pk):
-    
-#     if request.method == 'GET':
-#         market = Market.objects.get(pk=pk) 
-#         serializer = MarketSerializer(market, many=False, context={'request': request}) 
-#         return Response(serializer.data)
-
-#     if request.method == 'PUT':
-#         market = Market.objects.get(pk=pk)
-#         serializer = MarketSerializer(market, data=request.data, partial=True, context={'request': request})
-        
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data)
-#         else:
-#             return Response(serializer.errors)
-
-#     if request.method == 'DELETE':
-#         market = Market.objects.get(pk=pk) 
-#         serializer = MarketSerializer(market, many=False, context={'request': request})
-#         market.delete()
-#         return Response(serializer.data)
+# Ersetzt deine unfertigen ProductViewSets.
+class ProductViewSet(viewsets.ModelViewSet):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
 
 
-@api_view(['GET', 'POST'])
-def seller_view(request):
-    
-    if request.method == 'GET':
-        sellers = Seller.objects.all() 
-        # wegen 'many=True' bekommen wir eine Liste mehrerer Objects zurück (ist das eine ListView??)
-        serializer = SellerSerializer(sellers, many=True, context={'request': request}) 
-        return Response(serializer.data)
+# --- 2. SONDERFALL: SPEZIFISCH GEFILTERTE LISTEN (HIER SIND GENERICS PERFEKT) ---
 
-    if request.method == 'POST':
-        serializer = SellerSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        else:
-            return Response(serializer.errors)
+# Diese View wird über eine Sonder-URL aufgerufen (/market/<pk>/sellers/).
+# Sie listet nicht alle Verkäufer auf, sondern filtert sie nach dem Markt. 
+# Dafür ist eine generische View (ListCreateAPIView) das perfekte Werkzeug!
+class SellerOfMarketList(generics.ListCreateAPIView):
+    serializer_class = SellerSerializer # Wir nutzen einfach den normalen SellerSerializer
+
+    def get_queryset(self):
+        pk = self.kwargs.get('pk')
+        market = get_object_or_404(Market, pk=pk)
+        return market.sellers.all()
+
+    def perform_create(self, serializer):
+        pk = self.kwargs.get('pk')
+        market = get_object_or_404(Market, pk=pk)
+        serializer.save(markets=[market])
 
 
-@api_view(['GET', 'PUT', 'DELETE'])
-def single_seller_view(request, pk):
-    
-    try:
-        seller = Seller.objects.get(pk=pk)
-        
-    except Seller.DoesNotExist:
-        return Response({"error": "Seller not found"}, status=404)
+# =====================================================================
+# --- LERN-ARCHIV: ALTE VERSIONEN (MIXINS & FUNCTION BASED VIEWS) ---
+# =====================================================================
 
-    if request.method == 'GET':
-        # wegen 'many=False' bekommen wir keine Liste sondern ein einzelnes Object zurück
-        serializer = SellerSerializer(seller, many=False,context={'request': request}) 
-        return Response(serializer.data)
+# FRAGE: Single views nutzen meist GET, PUT, PATCH, DELETE. Multi views nutzen meist GET, POST.
+# ANTWORT: Exakt! Deswegen gibt es bei Generics die ListCreateAPIView (GET-List, POST) 
+# und die RetrieveUpdateDestroyAPIView (GET-Single, PUT, PATCH, DELETE). Ein ModelViewSet vereint einfach alle.
 
-    if request.method == 'PUT':
-        serializer = SellerSerializer(seller, data=request.data, partial=True, context={'request': request})
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        else:
-            return Response(serializer.errors, status=400)
+# --- STUFE 2: GENERICS (Guter Weg, aber ModelViewSet ist für komplett CRUD noch kürzer) ---
+# class MarketsView(generics.ListCreateAPIView):
+#     queryset = Market.objects.all()
+#     serializer_class = MarketSerializer
+#
+# class MarketSingleView(generics.RetrieveUpdateDestroyAPIView):
+#     queryset = Market.objects.all()
+#     serializer_class = MarketSerializer
 
-    if request.method == 'DELETE':
-        seller.delete()
-        return Response(status=204)
-            
+# --- STUFE 1.5: MIXINS (Das maßgeschneiderte Lego-Set. Zuviel Schreibarbeit für normales CRUD) ---
+# class MarketSingleView(mixins.RetrieveModelMixin, mixins.UpdateModelMixin, mixins.DestroyModelMixin ,generics.GenericAPIView):
+#     queryset = Market.objects.all()
+#     serializer_class = MarketSerializer
+#     def get(self, request, *args, **kwargs): return self.retrieve(request, *args, **kwargs)
+#     def put(self, request, *args, **kwargs): return self.update(request, *args, **kwargs)
+#     def delete(self, request, *args, **kwargs): return self.destroy(request, *args, **kwargs)
+
+# --- STUFE 1: FUNCTION BASED VIEWS (Reine Handarbeit, fehleranfällig. In der Praxis obsolet für DB-Modelle) ---
+# @api_view(['GET', 'PUT', 'DELETE'])
+# def single_seller_view(request, pk):
+#     try:
+#         seller = Seller.objects.get(pk=pk)
+#     except Seller.DoesNotExist:
+#         return Response({"error": "Seller not found"}, status=404)
+# ... (restlicher Code wie in deiner Vorlage)
