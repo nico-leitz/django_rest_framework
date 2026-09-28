@@ -73,3 +73,5 @@ class SellerOfMarketList(generics.ListCreateAPIView):
 #     except Seller.DoesNotExist:
 #         return Response({"error": "Seller not found"}, status=404)
 # ... (restlicher Code wie in deiner Vorlage)
+
+#
