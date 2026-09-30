@@ -2,8 +2,13 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class Manufacturer(models.Model):
+    # PFLICHTFELD: Serializer erzwingt eine Eingabe und erlaubt max. 100 Zeichen.
     name = models.CharField(max_length=100)
+    
+    # OPTIONAL: Darf im POST-Request fehlen (blank=True) und als NULL in der DB stehen (null=True).
     description = models.TextField(blank=True, null=True)
+    
+    # PFLICHTFELD: Serializer erzwingt zwingend eine gültige Dezimalzahl.
     net_worth = models.DecimalField(max_digits=100, decimal_places=2)
 
     def __str__(self):
