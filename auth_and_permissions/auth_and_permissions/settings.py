@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken', # was passiert hier?
     'basics',
     'user_auth_app',
 ]
@@ -137,5 +138,8 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         # Hier könnte auch 'isAuthenticated' oder 'IsAuthenticatedOrReadOnly' stehen
         'rest_framework.permissions.AllowAny', 
-    ] 
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication' # Warum das?
+    ]
 }
