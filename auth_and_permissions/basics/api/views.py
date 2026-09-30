@@ -34,7 +34,7 @@ class ManufacturerList(generics.ListCreateAPIView):
     #    für den URL-Pfad, der auf diese spezifische View verweist. Wenn du eine andere 
     #    View/URL baust, die auch 'Manufacturer' bearbeitet, musst du die Rechte dort 
     #    erneut festlegen.
-    
+
     permission_classes = [IsStaffOrReadOnly | IsAuthenticated] 
 
 
@@ -69,7 +69,7 @@ class ManufacturerUserList(generics.ListCreateAPIView):
 class ManufacturerUserDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = ManufacturerUser.objects.all()
     serializer_class = ManufacturerUserSerializer
-    #permission_classes = [IsOwnerOrAdmin]                           # später hinzufügen!
+    permission_classes = [IsOwnerOrAdmin]                          
 
 
 class ManufacturerProductListCreate(generics.ListCreateAPIView):
