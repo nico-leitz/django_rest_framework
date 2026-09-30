@@ -128,3 +128,14 @@ MAILERS = {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
     },
 }
+
+# Was passiert hier? (solange ich nicht eingeloggt bin kann ich nichts tuhen?)
+REST_FRAMEWORK = {
+    # In dem Fall würden wir hier 'AllowAny' GLOBAL setzen!
+    # Wird standardmäßig verwendet wenn man nicht selber was hinterlegt?
+    # Muss man AllowAny setzen, damit man eigene permissions festlegen kann/darf
+    'DEFAULT_PERMISSION_CLASSES': [
+        # Hier könnte auch 'isAuthenticated' oder 'IsAuthenticatedOrReadOnly' stehen
+        'rest_framework.permissions.AllowAny', 
+    ] 
+}
