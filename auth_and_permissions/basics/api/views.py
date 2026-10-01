@@ -35,7 +35,7 @@ class ManufacturerList(generics.ListCreateAPIView):
     #    View/URL baust, die auch 'Manufacturer' bearbeitet, musst du die Rechte dort 
     #    erneut festlegen.
 
-    permission_classes = [IsStaffOrReadOnly | IsAuthenticated] 
+    permission_classes = [IsAuthenticated] #IsStaffOrReadOnly
 
 
 class ManufacturerDetail(generics.RetrieveUpdateDestroyAPIView):
