@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from basics.models import Manufacturer, ManufacturerUser, Product
+from basics.models import Manufacturer, ManufacturerUser, Product, User
 
 class ManufacturerSerializer(serializers.ModelSerializer):
     class Meta:

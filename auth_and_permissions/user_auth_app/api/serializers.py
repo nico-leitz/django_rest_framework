@@ -2,6 +2,7 @@ from rest_framework import serializers
 from user_auth_app.models import UserProfile
 from django.contrib.auth.models import User
 
+
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
@@ -25,10 +26,10 @@ class RegistrationSerializer(serializers.ModelSerializer):
         pw = self.validated_data['password']
         repeated_pw = self.validated_data['repeated_password']
 
-        if pw != self.repeated_password:
+        if pw != repeated_pw:
             raise serializers.ValidationError({'error': 'password doesnt match'})
 
-        account = User(email=self.validated_data['email'], user=self.validated_data['username'])
+        account = User(email=self.validated_data.get('email', ''), username=self.validated_data['username'])
         account.set_password(pw)
         account.save()
         return account
