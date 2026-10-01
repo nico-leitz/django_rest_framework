@@ -137,7 +137,7 @@ REST_FRAMEWORK = {
     # Muss man AllowAny setzen, damit man eigene permissions festlegen kann/darf
     'DEFAULT_PERMISSION_CLASSES': [
         # Hier könnte auch 'isAuthenticated' oder 'IsAuthenticatedOrReadOnly' stehen
-        'rest_framework.permissions.AllowAny', 
+        'rest_framework.permissions.IsAuthenticated', 
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication' # Warum das?
